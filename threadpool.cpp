@@ -34,7 +34,7 @@ ThreadPool::ThreadPool(unsigned int num_thread)
 	topIndex = 0;
 	bottomIndex = 0;
 	incompleteWork = 0;
-	sem_init(&availableWork, 0, 0);
+	sem_init(&_available_work, 0, 0);
 	sem_init(&availableThreads, 0, queueSize);
 	pthread_mutex_unlock(&mutexSync);
 }
@@ -65,7 +65,7 @@ void ThreadPool::destroyPool(int maxPollSecs = 2)
 		sleep(maxPollSecs);
 	}
 	cout << "All Done!! Wow! That was a lot of work!" << endl;
-	sem_destroy(&availableWork);
+	sem_destroy(&_available_work);
 	sem_destroy(&availableThreads);
 	pthread_mutex_destroy(&mutexSync);
 	pthread_mutex_destroy(&mutexWorkCompletion);
@@ -88,14 +88,14 @@ bool ThreadPool::assignWork(WorkerThread *workerThread)
 	//cout << "Assigning Worker[" << workerThread->id << "] Address:[" << workerThread << "] to Queue index [" << topIndex << "]" << endl;
 	if(queueSize !=1 )
 		topIndex = (topIndex+1) % (queueSize-1);
-	sem_post(&availableWork);
+	sem_post(&_available_work);
 	pthread_mutex_unlock(&mutexSync);
 	return true;
 }
 
 bool ThreadPool::fetchWork(WorkerThread **workerArg)
 {
-	sem_wait(&availableWork);
+	sem_wait(&_available_work);
 
 	pthread_mutex_lock(&mutexSync);
 	WorkerThread * workerThread = _worker_queue[bottomIndex];

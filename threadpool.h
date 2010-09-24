@@ -62,7 +62,7 @@ public:
 private:
 	unsigned int _num_thread;
 
-	sem_t availableWork;
+	sem_t _available_work;
 	sem_t availableThreads;
 
 	std::vector<WorkerThread *> _worker_queue;
