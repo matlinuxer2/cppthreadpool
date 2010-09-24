@@ -16,10 +16,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <exception>
+
 #include <pthread.h>
 #include <semaphore.h>
 #include <iostream>
 #include <vector>
+
+class Error: public std::exception {
+public:
+	explicit Error(const char * what);
+	virtual ~Error() throw();
+	virtual const char* what() const throw();
+private:
+	const char * _what;
+};
 
 /*
 WorkerThread class
@@ -53,13 +64,15 @@ public:
 
 	static void *thread_execute(void *param);
 
-	static pthread_mutex_t _mutex_sync;
-	static pthread_mutex_t _mutex_work_completion;
 
 
 private:
+	static void init_mutex(pthread_mutex_t* mutex);
 	std::vector<pthread_t> _thread_pool;
 	unsigned int _num_thread;
+
+	pthread_mutex_t _mutex_sync;
+	pthread_mutex_t _mutex_work_completion;
 
 	sem_t _available_work;
 	sem_t _available_thread;

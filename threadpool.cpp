@@ -15,14 +15,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <algorithm>
-#include <stdlib.h>
 #include "threadpool.h"
+#include <stdlib.h>
+#include <errno.h>
 
 using namespace std;
-
-pthread_mutex_t ThreadPool::_mutex_sync = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t ThreadPool::_mutex_work_completion = PTHREAD_MUTEX_INITIALIZER;
 
 
 ThreadPool::ThreadPool(unsigned int num_thread)
@@ -31,13 +28,14 @@ ThreadPool::ThreadPool(unsigned int num_thread)
 ,_worker_queue(num_thread, NULL)
 ,_queue_size(num_thread)
 {
-	pthread_mutex_lock(&_mutex_sync);
 	_top_index = 0;
 	_bottom_index = 0;
 	_incomplete_work = 0;
 	sem_init(&_available_work, 0, 0);
 	sem_init(&_available_thread, 0, _queue_size);
-	pthread_mutex_unlock(&_mutex_sync);
+
+	init_mutex(&_mutex_sync);
+	init_mutex(&_mutex_work_completion);
 
 	for (std::vector<pthread_t>::iterator i = _thread_pool.begin(); i != _thread_pool.end(); ++i) {
 		pthread_create(&*i, NULL, &ThreadPool::thread_execute, this);
@@ -122,4 +120,39 @@ void *ThreadPool::thread_execute(void *param)
 		pthread_mutex_unlock( &(((ThreadPool *)param)->_mutex_work_completion) );
 	}
 	return 0;
+}
+
+void ThreadPool::init_mutex(pthread_mutex_t* const mutex)
+{
+	int ret = pthread_mutex_init(mutex, NULL);
+	switch (ret) {
+	case 0:
+		break;
+	case EAGAIN:
+		throw Error("EAGAIN returned by pthread_mutex_init()");
+	case ENOMEM:
+		throw Error("ENOMEM returned by pthread_mutex_init()");
+	case EPERM:
+		throw Error("EPERM returned by pthread_mutex_init()");
+	case EBUSY:
+		throw Error("EBUSY returned by pthread_mutex_init()");
+	case EINVAL:
+		throw Error("EINVAL returned by pthread_mutex_init()");
+	default:
+		throw Error("UNKNOWN returned by pthread_mutex_init()");
+	};
+}
+
+Error::Error(const char * what)
+:_what(what)
+{
+}
+
+Error::~Error() throw()
+{
+}
+
+const char* Error::what() const throw()
+{
+	return _what;
 }
