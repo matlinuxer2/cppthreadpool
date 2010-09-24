@@ -53,7 +53,7 @@ public:
 
 	void initialize_thread();
 
-	static void *threadExecute(void *param);
+	static void *thread_execute(void *param);
 
 	static pthread_mutex_t mutexSync;
 	static pthread_mutex_t mutexWorkCompletion;

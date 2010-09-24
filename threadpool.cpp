@@ -44,7 +44,7 @@ void ThreadPool::initialize_thread()
 	for (unsigned int i = 0; i < _num_thread; ++i)
 	{
 		pthread_t tempThread;
-		pthread_create(&tempThread, NULL, &ThreadPool::threadExecute, (void *) this );
+		pthread_create(&tempThread, NULL, &ThreadPool::thread_execute, (void *) this );
 		//threadIdVec[i] = tempThread;
 	}
 
@@ -108,7 +108,7 @@ bool ThreadPool::fetch_work(WorkerThread **workerArg)
 	return true;
 }
 
-void *ThreadPool::threadExecute(void *param)
+void *ThreadPool::thread_execute(void *param)
 {
 	WorkerThread *worker = NULL;
 
