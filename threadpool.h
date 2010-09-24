@@ -70,7 +70,7 @@ private:
 	int _top_index;
 	int _bottom_index;
 
-	int incompleteWork;
+	int _incomplete_work;
 
 
 	int queueSize;

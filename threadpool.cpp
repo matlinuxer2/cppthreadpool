@@ -33,7 +33,7 @@ ThreadPool::ThreadPool(unsigned int num_thread)
 	pthread_mutex_lock(&mutexSync);
 	_top_index = 0;
 	_bottom_index = 0;
-	incompleteWork = 0;
+	_incomplete_work = 0;
 	sem_init(&_available_work, 0, 0);
 	sem_init(&_available_thread, 0, queueSize);
 	pthread_mutex_unlock(&mutexSync);
@@ -59,9 +59,9 @@ ThreadPool::~ThreadPool()
 
 void ThreadPool::destroyPool(int maxPollSecs = 2)
 {
-	while( incompleteWork>0 )
+	while( _incomplete_work>0 )
 	{
-		//cout << "Work is still incomplete=" << incompleteWork << endl;
+		//cout << "Work is still incomplete=" << _incomplete_work << endl;
 		sleep(maxPollSecs);
 	}
 	cout << "All Done!! Wow! That was a lot of work!" << endl;
@@ -76,8 +76,8 @@ void ThreadPool::destroyPool(int maxPollSecs = 2)
 bool ThreadPool::assignWork(WorkerThread *workerThread)
 {
 	pthread_mutex_lock(&mutexWorkCompletion);
-	incompleteWork++;
-	//cout << "assignWork...incomapleteWork=" << incompleteWork << endl;
+	_incomplete_work++;
+	//cout << "assignWork...incomapleteWork=" << _incomplete_work << endl;
 	pthread_mutex_unlock(&mutexWorkCompletion);
 
 	sem_wait(&_available_thread);
@@ -124,7 +124,7 @@ void *ThreadPool::threadExecute(void *param)
 
 		pthread_mutex_lock( &(((ThreadPool *)param)->mutexWorkCompletion) );
 		//cout << "Thread " << pthread_self() << " has completed a Job !" << endl;
-		((ThreadPool *)param)->incompleteWork--;
+		((ThreadPool *)param)->_incomplete_work--;
 		pthread_mutex_unlock( &(((ThreadPool *)param)->mutexWorkCompletion) );
 	}
 	return 0;
