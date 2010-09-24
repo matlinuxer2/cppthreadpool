@@ -66,8 +66,7 @@ private:
 	sem_t availableWork;
 	sem_t availableThreads;
 
-	//WorkerThread ** workerQueue;
-	std::vector<WorkerThread *> workerQueue;
+	std::vector<WorkerThread *> _worker_queue;
 
 	int topIndex;
 	int bottomIndex;

@@ -27,7 +27,7 @@ pthread_mutex_t ThreadPool::mutexWorkCompletion = PTHREAD_MUTEX_INITIALIZER;
 
 ThreadPool::ThreadPool(unsigned int num_thread)
 :_num_thread(num_thread)
-,workerQueue(num_thread, NULL)
+,_worker_queue(num_thread, NULL)
 ,queueSize(num_thread)
 {
 	pthread_mutex_lock(&mutexSync);
@@ -52,7 +52,7 @@ void ThreadPool::initializeThreads()
 
 ThreadPool::~ThreadPool()
 {
-	workerQueue.clear();
+	_worker_queue.clear();
 }
 
 
@@ -84,7 +84,7 @@ bool ThreadPool::assignWork(WorkerThread *workerThread)
 
 	pthread_mutex_lock(&mutexSync);
 	//workerVec[topIndex] = workerThread;
-	workerQueue[topIndex] = workerThread;
+	_worker_queue[topIndex] = workerThread;
 	//cout << "Assigning Worker[" << workerThread->id << "] Address:[" << workerThread << "] to Queue index [" << topIndex << "]" << endl;
 	if(queueSize !=1 )
 		topIndex = (topIndex+1) % (queueSize-1);
@@ -98,8 +98,8 @@ bool ThreadPool::fetchWork(WorkerThread **workerArg)
 	sem_wait(&availableWork);
 
 	pthread_mutex_lock(&mutexSync);
-	WorkerThread * workerThread = workerQueue[bottomIndex];
-	workerQueue[bottomIndex] = NULL;
+	WorkerThread * workerThread = _worker_queue[bottomIndex];
+	_worker_queue[bottomIndex] = NULL;
 	*workerArg = workerThread;
 	if(queueSize !=1 )
 		bottomIndex = (bottomIndex+1) % (queueSize-1);
