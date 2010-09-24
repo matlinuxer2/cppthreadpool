@@ -16,10 +16,50 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "threadpool.h"
+#include <iostream>
 #include <stdlib.h>
 #include <errno.h>
 
 using namespace std;
+
+class ScopedMutex {
+public:
+	explicit ScopedMutex(pthread_mutex_t * const mutex):_mutex(mutex)
+	{
+		int ret = pthread_mutex_lock(_mutex);
+		switch (ret) {
+		case 0:
+			break;
+		case EINVAL:
+			throw Error("EINVAL returned by pthread_mutex_lock()");
+		case EAGAIN:
+			throw Error("EAGAIN returned by pthread_mutex_lock()");
+		case EDEADLK:
+			throw Error("EDEADLK returned by pthread_mutex_lock()");
+		default:
+			throw Error("UNKNOWN returned by pthread_mutex_lock()");
+		}
+	}
+
+	~ScopedMutex()
+	{
+		int ret = pthread_mutex_unlock(_mutex);
+		switch (ret) {
+		case 0:
+			break;
+		case EPERM:
+		default:
+			/*
+			 * No choose but die here. Destructor shall be a nofail function.
+			 */
+			std::cerr << ret << " returned by pthread_mutex_unlock()" << std::endl;
+
+			std::terminate();
+		}
+	}
+private:
+	pthread_mutex_t * const _mutex;
+};
 
 
 ThreadPool::ThreadPool(unsigned int num_thread)
@@ -67,21 +107,20 @@ void ThreadPool::destroy_pool(int maxPollSecs = 2)
 
 bool ThreadPool::assign_work(WorkerThread *workerThread)
 {
-	pthread_mutex_lock(&_mutex_work_completion);
-	_incomplete_work++;
-	//cout << "assign_work...incomapleteWork=" << _incomplete_work << endl;
-	pthread_mutex_unlock(&_mutex_work_completion);
+	{
+		ScopedMutex mutex(&_mutex_work_completion);
+		_incomplete_work++;
+	}
 
 	sem_wait(&_available_thread);
 
-	pthread_mutex_lock(&_mutex_sync);
-	//workerVec[_top_index] = workerThread;
-	_worker_queue[_top_index] = workerThread;
-	//cout << "Assigning Worker[" << workerThread->id << "] Address:[" << workerThread << "] to Queue index [" << _top_index << "]" << endl;
-	if(_queue_size !=1 )
-		_top_index = (_top_index+1) % (_queue_size-1);
-	sem_post(&_available_work);
-	pthread_mutex_unlock(&_mutex_sync);
+	{
+		ScopedMutex mutex(&_mutex_sync);
+		_worker_queue[_top_index] = workerThread;
+		if(_queue_size !=1 )
+			_top_index = (_top_index+1) % (_queue_size-1);
+		sem_post(&_available_work);
+	}
 	return true;
 }
 
@@ -89,14 +128,15 @@ bool ThreadPool::fetch_work(WorkerThread **workerArg)
 {
 	sem_wait(&_available_work);
 
-	pthread_mutex_lock(&_mutex_sync);
-	WorkerThread * workerThread = _worker_queue[_bottom_index];
-	_worker_queue[_bottom_index] = NULL;
-	*workerArg = workerThread;
-	if(_queue_size !=1 )
-		_bottom_index = (_bottom_index+1) % (_queue_size-1);
-	sem_post(&_available_thread);
-	pthread_mutex_unlock(&_mutex_sync);
+	{
+		ScopedMutex mutex(&_mutex_sync);
+		WorkerThread * workerThread = _worker_queue[_bottom_index];
+		_worker_queue[_bottom_index] = NULL;
+		*workerArg = workerThread;
+		if(_queue_size !=1 )
+			_bottom_index = (_bottom_index+1) % (_queue_size-1);
+		sem_post(&_available_thread);
+	}
 	return true;
 }
 
@@ -114,10 +154,11 @@ void *ThreadPool::thread_execute(void *param)
 			worker = NULL;
 		}
 
-		pthread_mutex_lock( &(((ThreadPool *)param)->_mutex_work_completion) );
-		//cout << "Thread " << pthread_self() << " has completed a Job !" << endl;
-		((ThreadPool *)param)->_incomplete_work--;
-		pthread_mutex_unlock( &(((ThreadPool *)param)->_mutex_work_completion) );
+		{
+			ThreadPool * pool = static_cast<ThreadPool*>(param);
+			ScopedMutex mutex(&pool->_mutex_work_completion);
+			--pool->_incomplete_work;
+		}
 	}
 	return 0;
 }
