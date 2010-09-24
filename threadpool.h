@@ -59,7 +59,6 @@ public:
 	virtual ~ThreadPool();
 
 	void assign_work(WorkerThread *worker);
-	WorkerThread* fetch_work();
 
 private:
 	static void *thread_execute(void *param);
@@ -67,6 +66,8 @@ private:
 	static void init_sem(sem_t* sem);
 	static void post_sem(sem_t* sem);
 	static void wait_sem(sem_t* sem);
+
+	WorkerThread* fetch_work();
 
 	std::vector<pthread_t> _thread_pool;
 	std::list<WorkerThread *> _work;
