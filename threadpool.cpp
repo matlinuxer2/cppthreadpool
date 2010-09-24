@@ -207,20 +207,18 @@ void ThreadPool::post_sem(sem_t* const sem)
 
 void ThreadPool::wait_sem(sem_t* const sem)
 {
-	for (;;) {
-		int ret = sem_wait(sem);
-		if (0 == ret) {
-			return;
-		}
+	int ret = 0;
+	do {
+		ret = sem_wait(sem);
+	} while (0 != ret && EINTR == errno);
 
-		switch (errno) {
-		case EINTR:
-			break;
-		case EINVAL:
-			throw Error("EINVAL returned by sem_wait()");
-		default:
-			throw Error("UNKNOWN returned by sem_wait()");
-		}
+	if (0 == ret) return;
+
+	switch (errno) {
+	case EINVAL:
+		throw Error("EINVAL returned by sem_wait()");
+	default:
+		throw Error("UNKNOWN returned by sem_wait()");
 	}
 }
 
