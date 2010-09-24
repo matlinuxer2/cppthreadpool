@@ -27,7 +27,7 @@ using namespace std;
 class SampleWorkerThread : public WorkerThread
 {
 public:
-        int id;
+	int id;
 
 	unsigned virtual executeThis()
 	{
@@ -39,15 +39,15 @@ public:
 	}
 
 
-        SampleWorkerThread(int id) : WorkerThread(id), id(id)
-        {
+	SampleWorkerThread(int id) : WorkerThread(id), id(id)
+	{
 //           cout << "Creating SampleWorkerThread " << id << "\t address=" << this << endl;
-        }
+	}
 
-        ~SampleWorkerThread()
-        {
+	~SampleWorkerThread()
+	{
 //           cout << "Deleting SampleWorkerThread " << id << "\t address=" << this << endl;
-        }
+	}
 };
 
 
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 	myPool->initializeThreads();
 
 	//We will count time elapsed after initializeThreads()
-    time_t t1=time(NULL);
+	time_t t1=time(NULL);
 
 	//Lets start bullying ThreadPool with tonnes of work !!!
 	for(unsigned int i=0;i<ITERATIONS;i++){
@@ -67,18 +67,18 @@ int main(int argc, char **argv)
 //cout << "myThread[" << myThread->id << "] = [" << myThread << "]" << endl;
 		myPool->assignWork(myThread);
 	}
-	
+
 	// destroyPool(int maxPollSecs)
 	// Before actually destroying the ThreadPool, this function checks if all the pending work is completed.
 	// If the work is still not done, then it will check again after maxPollSecs
 	// The default value for maxPollSecs is 2 seconds.
 	// And ofcourse the user is supposed to adjust it for his needs.
-	
-    myPool->destroyPool(2);
 
-    time_t t2=time(NULL);
-    cout << t2-t1 << " seconds elapsed\n" << endl;
+	myPool->destroyPool(2);
+
+	time_t t2=time(NULL);
+	cout << t2-t1 << " seconds elapsed\n" << endl;
 	delete myPool;
-	
-    return 0;
+
+	return 0;
 }
