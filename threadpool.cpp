@@ -57,7 +57,7 @@ ThreadPool::~ThreadPool()
 
 
 
-void ThreadPool::destroyPool(int maxPollSecs = 2)
+void ThreadPool::destroy_pool(int maxPollSecs = 2)
 {
 	while( _incomplete_work>0 )
 	{

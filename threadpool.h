@@ -46,7 +46,7 @@ public:
 	explicit ThreadPool(unsigned int num_thread);
 	virtual ~ThreadPool();
 
-	void destroyPool(int maxPollSecs);
+	void destroy_pool(int maxPollSecs);
 
 	bool assignWork(WorkerThread *worker);
 	bool fetchWork(WorkerThread **worker);
