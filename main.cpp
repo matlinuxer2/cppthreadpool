@@ -66,13 +66,13 @@ int main(int argc, char **argv)
 		myPool->assign_work(myThread);
 	}
 
+	sleep(100);
+
 	// destroy_pool(int maxPollSecs)
 	// Before actually destroying the ThreadPool, this function checks if all the pending work is completed.
 	// If the work is still not done, then it will check again after maxPollSecs
 	// The default value for maxPollSecs is 2 seconds.
 	// And ofcourse the user is supposed to adjust it for his needs.
-
-	myPool->destroy_pool(2);
 
 	time_t t2=time(NULL);
 	cout << t2-t1 << " seconds elapsed\n" << endl;
