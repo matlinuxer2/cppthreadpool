@@ -1,7 +1,7 @@
 /*
     Thread Pool implementation for unix / linux environments
     Copyright (C) 2008 Shobhit Gupta
-	
+
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -28,15 +28,15 @@ This class needs to be sobclassed by the user.
 */
 class WorkerThread{
 public:
-    int id;
+	int id;
 
-    unsigned virtual executeThis()
+	unsigned virtual executeThis()
 	{
 		return 0;
 	}
 
-    WorkerThread(int id) : id(id) {}
-    virtual ~WorkerThread(){}
+	WorkerThread(int id) : id(id) {}
+	virtual ~WorkerThread(){}
 };
 
 /*
@@ -44,40 +44,40 @@ ThreadPool class manages all the ThreadPool related activities. This includes ke
 */
 class ThreadPool{
 public:
-    ThreadPool();
-    ThreadPool(int maxThreadsTemp);
-    virtual ~ThreadPool();
-	
+	ThreadPool();
+	ThreadPool(int maxThreadsTemp);
+	virtual ~ThreadPool();
+
 	void destroyPool(int maxPollSecs);
 
-    bool assignWork(WorkerThread *worker);
-    bool fetchWork(WorkerThread **worker);
+	bool assignWork(WorkerThread *worker);
+	bool fetchWork(WorkerThread **worker);
 
 	void initializeThreads();
-	
-    static void *threadExecute(void *param);
-    
-    static pthread_mutex_t mutexSync;
-    static pthread_mutex_t mutexWorkCompletion;
-    
-    
+
+	static void *threadExecute(void *param);
+
+	static pthread_mutex_t mutexSync;
+	static pthread_mutex_t mutexWorkCompletion;
+
+
 private:
-    int maxThreads;
-    
-    pthread_cond_t  condCrit;
-    sem_t availableWork;
-    sem_t availableThreads;
+	int maxThreads;
 
-    //WorkerThread ** workerQueue;
-    vector<WorkerThread *> workerQueue;
+	pthread_cond_t  condCrit;
+	sem_t availableWork;
+	sem_t availableThreads;
 
-    int topIndex;
-    int bottomIndex;
-	
+	//WorkerThread ** workerQueue;
+	vector<WorkerThread *> workerQueue;
+
+	int topIndex;
+	int bottomIndex;
+
 	int incompleteWork;
 
-    
-    int queueSize;
+
+	int queueSize;
 
 };
 
