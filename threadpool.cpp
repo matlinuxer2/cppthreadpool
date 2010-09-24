@@ -93,7 +93,7 @@ bool ThreadPool::assign_work(WorkerThread *workerThread)
 	return true;
 }
 
-bool ThreadPool::fetchWork(WorkerThread **workerArg)
+bool ThreadPool::fetch_work(WorkerThread **workerArg)
 {
 	sem_wait(&_available_work);
 
@@ -112,7 +112,7 @@ void *ThreadPool::threadExecute(void *param)
 {
 	WorkerThread *worker = NULL;
 
-	while(((ThreadPool *)param)->fetchWork(&worker))
+	while(((ThreadPool *)param)->fetch_work(&worker))
 	{
 		if(worker)
 		{

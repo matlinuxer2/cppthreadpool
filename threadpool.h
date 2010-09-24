@@ -49,7 +49,7 @@ public:
 	void destroy_pool(int maxPollSecs);
 
 	bool assign_work(WorkerThread *worker);
-	bool fetchWork(WorkerThread **worker);
+	bool fetch_work(WorkerThread **worker);
 
 	void initializeThreads();
 
