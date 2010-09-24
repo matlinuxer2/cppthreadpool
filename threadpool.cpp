@@ -16,7 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "threadpool.h"
+
 #include <iostream>
+
+#include <cassert>
 #include <stdlib.h>
 #include <errno.h>
 
@@ -26,6 +29,8 @@ class ScopedMutex {
 public:
 	explicit ScopedMutex(pthread_mutex_t * const mutex):_mutex(mutex)
 	{
+		assert(mutex);
+
 		int ret = pthread_mutex_lock(_mutex);
 		switch (ret) {
 		case 0:
@@ -61,11 +66,16 @@ private:
 	pthread_mutex_t * const _mutex;
 };
 
+const struct timespec ThreadPool::DESTROY_TIMEOUT = { 10, 0 };
 
 ThreadPool::ThreadPool(unsigned int num_thread)
 :_thread_pool(num_thread)
 ,_work()
 {
+	if (0 == num_thread) {
+		throw Error("zero thread?");
+	}
+
 	init_sem(&_available_work);
 	init_mutex(&_work_mutex);
 
@@ -76,12 +86,33 @@ ThreadPool::ThreadPool(unsigned int num_thread)
 
 ThreadPool::~ThreadPool()
 {
-	// TODO: do cleanup
+	int ret = 0;
+	// make sure all thread finish its jobs.
+	for (unsigned int i = 0; i < _thread_pool.size(); ++i) {
+		ret = sem_timedwait(&_available_work, &DESTROY_TIMEOUT);
+		if (0 != ret) {
+			std::cerr << "Timeout, stop ThreadPool with work" << std::endl;
+			break;
+		}
+	}
+	ret = sem_destroy(&_available_work);
+	if (0 != ret) {
+		std::cerr << errno << " returned by sem_destory(). Ignore" << std::endl;
+	}
+
+	ret = pthread_mutex_destroy(&_work_mutex);
+	if (0 != ret) {
+		std::cerr << ret << " returned by pthread_mutex_destroy(). Ignore" << std::endl;
+	}
 }
 
 
 void ThreadPool::assign_work(WorkerThread *workerThread)
 {
+	if (!workerThread) {
+		throw Error("null?");
+	}
+
 	ScopedMutex mutex(&_work_mutex);
 	_work.push_back(workerThread);
 	post_sem(&_available_work);
