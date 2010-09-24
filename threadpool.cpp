@@ -31,7 +31,7 @@ ThreadPool::ThreadPool(unsigned int num_thread)
 ,queueSize(num_thread)
 {
 	pthread_mutex_lock(&mutexSync);
-	topIndex = 0;
+	_top_index = 0;
 	bottomIndex = 0;
 	incompleteWork = 0;
 	sem_init(&_available_work, 0, 0);
@@ -83,11 +83,11 @@ bool ThreadPool::assignWork(WorkerThread *workerThread)
 	sem_wait(&_available_thread);
 
 	pthread_mutex_lock(&mutexSync);
-	//workerVec[topIndex] = workerThread;
-	_worker_queue[topIndex] = workerThread;
-	//cout << "Assigning Worker[" << workerThread->id << "] Address:[" << workerThread << "] to Queue index [" << topIndex << "]" << endl;
+	//workerVec[_top_index] = workerThread;
+	_worker_queue[_top_index] = workerThread;
+	//cout << "Assigning Worker[" << workerThread->id << "] Address:[" << workerThread << "] to Queue index [" << _top_index << "]" << endl;
 	if(queueSize !=1 )
-		topIndex = (topIndex+1) % (queueSize-1);
+		_top_index = (_top_index+1) % (queueSize-1);
 	sem_post(&_available_work);
 	pthread_mutex_unlock(&mutexSync);
 	return true;
