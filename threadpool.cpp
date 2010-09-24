@@ -178,15 +178,16 @@ void ThreadPool::init_mutex(pthread_mutex_t* const mutex)
 void ThreadPool::init_sem(sem_t* const sem)
 {
 	int ret = sem_init(sem, 0, 0);
-	if (0 != ret) {
-		switch (errno) {
-		case EINVAL:
-			throw Error("EINVAL returned by sem_init()");
-		case ENOSYS:
-			throw Error("ENOSYS returned by sem_init()");
-		default:
-			throw Error("UNKNOWN returned by sem_init()");
-		}
+
+	if (0 == ret) return;
+
+	switch (errno) {
+	case EINVAL:
+		throw Error("EINVAL returned by sem_init()");
+	case ENOSYS:
+		throw Error("ENOSYS returned by sem_init()");
+	default:
+		throw Error("UNKNOWN returned by sem_init()");
 	}
 }
 
