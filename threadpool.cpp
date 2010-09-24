@@ -17,8 +17,8 @@
 */
 #include "threadpool.h"
 
-#include <iostream>
 #include <cassert>
+#include <iostream>
 
 #include <errno.h>
 
