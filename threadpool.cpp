@@ -25,24 +25,12 @@ pthread_mutex_t ThreadPool::mutexSync = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t ThreadPool::mutexWorkCompletion = PTHREAD_MUTEX_INITIALIZER;
 
 
-
-ThreadPool::ThreadPool()
+ThreadPool::ThreadPool(unsigned int num_thread)
+:_num_thread(num_thread)
+,workerQueue(num_thread, NULL)
+,queueSize(num_thread)
 {
-	ThreadPool(2);
-}
-
-ThreadPool::ThreadPool(int maxThreads)
-{
-	if (maxThreads < 1)  maxThreads=1;
-
-	//mutexSync = PTHREAD_MUTEX_INITIALIZER;
-	//mutexWorkCompletion = PTHREAD_MUTEX_INITIALIZER;
-
 	pthread_mutex_lock(&mutexSync);
-	this->maxThreads = maxThreads;
-	this->queueSize = maxThreads;
-	//workerQueue = new WorkerThread *[maxThreads];
-	workerQueue.resize(maxThreads, NULL);
 	topIndex = 0;
 	bottomIndex = 0;
 	incompleteWork = 0;
@@ -53,7 +41,7 @@ ThreadPool::ThreadPool(int maxThreads)
 
 void ThreadPool::initializeThreads()
 {
-	for(int i = 0; i<maxThreads; ++i)
+	for (unsigned int i = 0; i < _num_thread; ++i)
 	{
 		pthread_t tempThread;
 		pthread_create(&tempThread, NULL, &ThreadPool::threadExecute, (void *) this );

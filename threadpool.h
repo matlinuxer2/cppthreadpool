@@ -43,8 +43,7 @@ ThreadPool class manages all the ThreadPool related activities. This includes ke
 */
 class ThreadPool{
 public:
-	ThreadPool();
-	ThreadPool(int maxThreadsTemp);
+	explicit ThreadPool(unsigned int num_thread);
 	virtual ~ThreadPool();
 
 	void destroyPool(int maxPollSecs);
@@ -61,7 +60,7 @@ public:
 
 
 private:
-	int maxThreads;
+	unsigned int _num_thread;
 
 	pthread_cond_t  condCrit;
 	sem_t availableWork;
