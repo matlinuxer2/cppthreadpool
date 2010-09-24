@@ -1,0 +1,5 @@
+*~
+cscope*
+*.o
+*.swp
+threadpool
