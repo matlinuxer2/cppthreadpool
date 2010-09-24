@@ -18,12 +18,9 @@
 #include "threadpool.h"
 
 #include <iostream>
-
 #include <cassert>
-#include <stdlib.h>
-#include <errno.h>
 
-using namespace std;
+#include <errno.h>
 
 class ScopedMutex {
 public:
@@ -80,18 +77,34 @@ ThreadPool::ThreadPool(unsigned int num_thread)
 	init_mutex(&_work_mutex);
 
 	for (std::vector<pthread_t>::iterator i = _thread_pool.begin(); i != _thread_pool.end(); ++i) {
-		pthread_create(&*i, NULL, &ThreadPool::thread_execute, this);
+		int ret = pthread_create(&*i, NULL, &ThreadPool::thread_execute, this);
+		switch (ret) {
+		case 0:
+			break;
+		case EAGAIN:
+			throw Error("EAGAIN returned by pthread_create()");
+		case EINVAL:
+			throw Error("EINVAL returned by pthread_create()");
+		case EPERM:
+			throw Error("EPERM returned by pthread_create()");
+		default:
+			throw Error("UNKNOWN returned by pthread_create()");
+		}
 	}
 }
 
 ThreadPool::~ThreadPool()
 {
+	/*
+	 * All failures are ignored in destructor.
+	 */
+
 	int ret = 0;
 	// make sure all thread finish its jobs.
 	for (unsigned int i = 0; i < _thread_pool.size(); ++i) {
 		ret = sem_timedwait(&_available_work, &DESTROY_TIMEOUT);
 		if (0 != ret) {
-			std::cerr << "Timeout, stop ThreadPool with work" << std::endl;
+			std::cerr << "Timeout, stop ThreadPool" << std::endl;
 			break;
 		}
 	}
