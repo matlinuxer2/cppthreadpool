@@ -21,7 +21,6 @@
 #include <iostream>
 #include <vector>
 
-using namespace std;
 /*
 WorkerThread class
 This class needs to be sobclassed by the user.
@@ -69,7 +68,7 @@ private:
 	sem_t availableThreads;
 
 	//WorkerThread ** workerQueue;
-	vector<WorkerThread *> workerQueue;
+	std::vector<WorkerThread *> workerQueue;
 
 	int topIndex;
 	int bottomIndex;
