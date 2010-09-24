@@ -58,42 +58,20 @@ public:
 	explicit ThreadPool(unsigned int num_thread);
 	virtual ~ThreadPool();
 
-	void destroy_pool(int maxPollSecs);
-
 	void assign_work(WorkerThread *worker);
 	WorkerThread* fetch_work();
 
-	static void *thread_execute(void *param);
-
-
-
 private:
+	static void *thread_execute(void *param);
 	static void init_mutex(pthread_mutex_t* mutex);
 	static void init_sem(sem_t* sem);
 	static void post_sem(sem_t* sem);
 	static void wait_sem(sem_t* sem);
+
 	std::vector<pthread_t> _thread_pool;
 	std::list<WorkerThread *> _work;
 	pthread_mutex_t _work_mutex;
 	sem_t _available_work;
-
-	unsigned int _num_thread;
-
-	pthread_mutex_t _mutex_sync;
-	pthread_mutex_t _mutex_work_completion;
-
-	sem_t _available_thread;
-
-	std::vector<WorkerThread *> _worker_queue;
-
-	int _top_index;
-	int _bottom_index;
-
-	int _incomplete_work;
-
-
-	int _queue_size;
-
 };
 
 

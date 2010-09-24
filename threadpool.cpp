@@ -64,19 +64,10 @@ private:
 
 ThreadPool::ThreadPool(unsigned int num_thread)
 :_thread_pool(num_thread)
-,_num_thread(num_thread)
-,_worker_queue(num_thread, NULL)
-,_queue_size(num_thread)
+,_work()
 {
-	_top_index = 0;
-	_bottom_index = 0;
-	_incomplete_work = 0;
 	init_sem(&_available_work);
-	sem_init(&_available_thread, 0, _queue_size);
-
 	init_mutex(&_work_mutex);
-	init_mutex(&_mutex_sync);
-	init_mutex(&_mutex_work_completion);
 
 	for (std::vector<pthread_t>::iterator i = _thread_pool.begin(); i != _thread_pool.end(); ++i) {
 		pthread_create(&*i, NULL, &ThreadPool::thread_execute, this);
@@ -85,24 +76,7 @@ ThreadPool::ThreadPool(unsigned int num_thread)
 
 ThreadPool::~ThreadPool()
 {
-	_worker_queue.clear();
-}
-
-
-
-void ThreadPool::destroy_pool(int maxPollSecs = 2)
-{
-	while( _incomplete_work>0 )
-	{
-		//cout << "Work is still incomplete=" << _incomplete_work << endl;
-		sleep(maxPollSecs);
-	}
-	cout << "All Done!! Wow! That was a lot of work!" << endl;
-	sem_destroy(&_available_work);
-	sem_destroy(&_available_thread);
-	pthread_mutex_destroy(&_mutex_sync);
-	pthread_mutex_destroy(&_mutex_work_completion);
-
+	// TODO: do cleanup
 }
 
 
