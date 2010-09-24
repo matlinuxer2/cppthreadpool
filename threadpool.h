@@ -68,7 +68,7 @@ private:
 	std::vector<WorkerThread *> _worker_queue;
 
 	int _top_index;
-	int bottomIndex;
+	int _bottom_index;
 
 	int incompleteWork;
 

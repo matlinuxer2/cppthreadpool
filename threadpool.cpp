@@ -32,7 +32,7 @@ ThreadPool::ThreadPool(unsigned int num_thread)
 {
 	pthread_mutex_lock(&mutexSync);
 	_top_index = 0;
-	bottomIndex = 0;
+	_bottom_index = 0;
 	incompleteWork = 0;
 	sem_init(&_available_work, 0, 0);
 	sem_init(&_available_thread, 0, queueSize);
@@ -98,11 +98,11 @@ bool ThreadPool::fetchWork(WorkerThread **workerArg)
 	sem_wait(&_available_work);
 
 	pthread_mutex_lock(&mutexSync);
-	WorkerThread * workerThread = _worker_queue[bottomIndex];
-	_worker_queue[bottomIndex] = NULL;
+	WorkerThread * workerThread = _worker_queue[_bottom_index];
+	_worker_queue[_bottom_index] = NULL;
 	*workerArg = workerThread;
 	if(queueSize !=1 )
-		bottomIndex = (bottomIndex+1) % (queueSize-1);
+		_bottom_index = (_bottom_index+1) % (queueSize-1);
 	sem_post(&_available_thread);
 	pthread_mutex_unlock(&mutexSync);
 	return true;
