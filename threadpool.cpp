@@ -102,7 +102,10 @@ ThreadPool::~ThreadPool()
 	int ret = 0;
 	// make sure all thread finish its jobs.
 	for (unsigned int i = 0; i < _thread_pool.size(); ++i) {
-		ret = sem_timedwait(&_available_work, &DESTROY_TIMEOUT);
+		do {
+			ret = sem_timedwait(&_available_work, &DESTROY_TIMEOUT);
+		} while (0 != ret && EINTR == errno);
+
 		if (0 != ret) {
 			std::cerr << "Timeout, stop ThreadPool" << std::endl;
 			break;
