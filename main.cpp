@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 	for(unsigned int i=0;i<ITERATIONS;i++){
 		SampleWorkerThread* myThread = new SampleWorkerThread(i);
 //cout << "myThread[" << myThread->id << "] = [" << myThread << "]" << endl;
-		myPool->assignWork(myThread);
+		myPool->assign_work(myThread);
 	}
 
 	// destroy_pool(int maxPollSecs)

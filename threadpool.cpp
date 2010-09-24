@@ -73,11 +73,11 @@ void ThreadPool::destroy_pool(int maxPollSecs = 2)
 }
 
 
-bool ThreadPool::assignWork(WorkerThread *workerThread)
+bool ThreadPool::assign_work(WorkerThread *workerThread)
 {
 	pthread_mutex_lock(&mutexWorkCompletion);
 	_incomplete_work++;
-	//cout << "assignWork...incomapleteWork=" << _incomplete_work << endl;
+	//cout << "assign_work...incomapleteWork=" << _incomplete_work << endl;
 	pthread_mutex_unlock(&mutexWorkCompletion);
 
 	sem_wait(&_available_thread);
