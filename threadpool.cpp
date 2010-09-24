@@ -21,7 +21,7 @@
 
 using namespace std;
 
-pthread_mutex_t ThreadPool::mutexSync = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t ThreadPool::_mutex_sync = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t ThreadPool::mutexWorkCompletion = PTHREAD_MUTEX_INITIALIZER;
 
 
@@ -30,13 +30,13 @@ ThreadPool::ThreadPool(unsigned int num_thread)
 ,_worker_queue(num_thread, NULL)
 ,_queue_size(num_thread)
 {
-	pthread_mutex_lock(&mutexSync);
+	pthread_mutex_lock(&_mutex_sync);
 	_top_index = 0;
 	_bottom_index = 0;
 	_incomplete_work = 0;
 	sem_init(&_available_work, 0, 0);
 	sem_init(&_available_thread, 0, _queue_size);
-	pthread_mutex_unlock(&mutexSync);
+	pthread_mutex_unlock(&_mutex_sync);
 }
 
 void ThreadPool::initialize_thread()
@@ -67,7 +67,7 @@ void ThreadPool::destroy_pool(int maxPollSecs = 2)
 	cout << "All Done!! Wow! That was a lot of work!" << endl;
 	sem_destroy(&_available_work);
 	sem_destroy(&_available_thread);
-	pthread_mutex_destroy(&mutexSync);
+	pthread_mutex_destroy(&_mutex_sync);
 	pthread_mutex_destroy(&mutexWorkCompletion);
 
 }
@@ -82,14 +82,14 @@ bool ThreadPool::assign_work(WorkerThread *workerThread)
 
 	sem_wait(&_available_thread);
 
-	pthread_mutex_lock(&mutexSync);
+	pthread_mutex_lock(&_mutex_sync);
 	//workerVec[_top_index] = workerThread;
 	_worker_queue[_top_index] = workerThread;
 	//cout << "Assigning Worker[" << workerThread->id << "] Address:[" << workerThread << "] to Queue index [" << _top_index << "]" << endl;
 	if(_queue_size !=1 )
 		_top_index = (_top_index+1) % (_queue_size-1);
 	sem_post(&_available_work);
-	pthread_mutex_unlock(&mutexSync);
+	pthread_mutex_unlock(&_mutex_sync);
 	return true;
 }
 
@@ -97,14 +97,14 @@ bool ThreadPool::fetch_work(WorkerThread **workerArg)
 {
 	sem_wait(&_available_work);
 
-	pthread_mutex_lock(&mutexSync);
+	pthread_mutex_lock(&_mutex_sync);
 	WorkerThread * workerThread = _worker_queue[_bottom_index];
 	_worker_queue[_bottom_index] = NULL;
 	*workerArg = workerThread;
 	if(_queue_size !=1 )
 		_bottom_index = (_bottom_index+1) % (_queue_size-1);
 	sem_post(&_available_thread);
-	pthread_mutex_unlock(&mutexSync);
+	pthread_mutex_unlock(&_mutex_sync);
 	return true;
 }
 

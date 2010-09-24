@@ -55,7 +55,7 @@ public:
 
 	static void *thread_execute(void *param);
 
-	static pthread_mutex_t mutexSync;
+	static pthread_mutex_t _mutex_sync;
 	static pthread_mutex_t mutexWorkCompletion;
 
 
