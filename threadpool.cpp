@@ -35,7 +35,7 @@ ThreadPool::ThreadPool(unsigned int num_thread)
 	bottomIndex = 0;
 	incompleteWork = 0;
 	sem_init(&_available_work, 0, 0);
-	sem_init(&availableThreads, 0, queueSize);
+	sem_init(&_available_thread, 0, queueSize);
 	pthread_mutex_unlock(&mutexSync);
 }
 
@@ -66,7 +66,7 @@ void ThreadPool::destroyPool(int maxPollSecs = 2)
 	}
 	cout << "All Done!! Wow! That was a lot of work!" << endl;
 	sem_destroy(&_available_work);
-	sem_destroy(&availableThreads);
+	sem_destroy(&_available_thread);
 	pthread_mutex_destroy(&mutexSync);
 	pthread_mutex_destroy(&mutexWorkCompletion);
 
@@ -80,7 +80,7 @@ bool ThreadPool::assignWork(WorkerThread *workerThread)
 	//cout << "assignWork...incomapleteWork=" << incompleteWork << endl;
 	pthread_mutex_unlock(&mutexWorkCompletion);
 
-	sem_wait(&availableThreads);
+	sem_wait(&_available_thread);
 
 	pthread_mutex_lock(&mutexSync);
 	//workerVec[topIndex] = workerThread;
@@ -103,7 +103,7 @@ bool ThreadPool::fetchWork(WorkerThread **workerArg)
 	*workerArg = workerThread;
 	if(queueSize !=1 )
 		bottomIndex = (bottomIndex+1) % (queueSize-1);
-	sem_post(&availableThreads);
+	sem_post(&_available_thread);
 	pthread_mutex_unlock(&mutexSync);
 	return true;
 }
