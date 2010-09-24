@@ -22,7 +22,7 @@
 using namespace std;
 
 pthread_mutex_t ThreadPool::_mutex_sync = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t ThreadPool::mutexWorkCompletion = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t ThreadPool::_mutex_work_completion = PTHREAD_MUTEX_INITIALIZER;
 
 
 ThreadPool::ThreadPool(unsigned int num_thread)
@@ -68,17 +68,17 @@ void ThreadPool::destroy_pool(int maxPollSecs = 2)
 	sem_destroy(&_available_work);
 	sem_destroy(&_available_thread);
 	pthread_mutex_destroy(&_mutex_sync);
-	pthread_mutex_destroy(&mutexWorkCompletion);
+	pthread_mutex_destroy(&_mutex_work_completion);
 
 }
 
 
 bool ThreadPool::assign_work(WorkerThread *workerThread)
 {
-	pthread_mutex_lock(&mutexWorkCompletion);
+	pthread_mutex_lock(&_mutex_work_completion);
 	_incomplete_work++;
 	//cout << "assign_work...incomapleteWork=" << _incomplete_work << endl;
-	pthread_mutex_unlock(&mutexWorkCompletion);
+	pthread_mutex_unlock(&_mutex_work_completion);
 
 	sem_wait(&_available_thread);
 
@@ -122,10 +122,10 @@ void *ThreadPool::thread_execute(void *param)
 			worker = NULL;
 		}
 
-		pthread_mutex_lock( &(((ThreadPool *)param)->mutexWorkCompletion) );
+		pthread_mutex_lock( &(((ThreadPool *)param)->_mutex_work_completion) );
 		//cout << "Thread " << pthread_self() << " has completed a Job !" << endl;
 		((ThreadPool *)param)->_incomplete_work--;
-		pthread_mutex_unlock( &(((ThreadPool *)param)->mutexWorkCompletion) );
+		pthread_mutex_unlock( &(((ThreadPool *)param)->_mutex_work_completion) );
 	}
 	return 0;
 }
