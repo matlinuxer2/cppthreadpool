@@ -73,7 +73,7 @@ private:
 	int _incomplete_work;
 
 
-	int queueSize;
+	int _queue_size;
 
 };
 
