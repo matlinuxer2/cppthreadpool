@@ -13,4 +13,4 @@ clean:
 	$(RM) $(OBJ) $(BIN)
 
 .cpp.o:
-	$(CXX) $< -c ${CXXFLAGS} -o $@
+	$(CXX) $< -c $(CXXFLAGS) -o $@
