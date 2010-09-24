@@ -22,7 +22,7 @@
 using namespace std;
 
 
-#define ITERATIONS 200
+#define ITERATIONS 10
 
 class SampleWorkerThread : public WorkerThread
 {
@@ -33,8 +33,7 @@ public:
 	{
 	// Instead of sleep() we could do anytime consuming work here.
 	//Using ThreadPools is advantageous only when the work to be done is really time consuming. (atleast 1 or 2 seconds)
-		sleep(2);
-
+		cout << "id " << id << " executing" << endl;
 		return(0);
 	}
 
@@ -55,7 +54,7 @@ int main(int argc, char **argv)
 {
 	//ThreadPool(N);
 	//Create a Threadpool with N number of threads
-	ThreadPool* myPool = new ThreadPool(25);
+	ThreadPool* myPool = new ThreadPool(2);
 	myPool->initializeThreads();
 
 	//We will count time elapsed after initializeThreads()
