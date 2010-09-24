@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#include <algorithm>
 #include <stdlib.h>
 #include "threadpool.h"
 
@@ -26,7 +26,8 @@ pthread_mutex_t ThreadPool::_mutex_work_completion = PTHREAD_MUTEX_INITIALIZER;
 
 
 ThreadPool::ThreadPool(unsigned int num_thread)
-:_num_thread(num_thread)
+:_thread_pool(num_thread)
+,_num_thread(num_thread)
 ,_worker_queue(num_thread, NULL)
 ,_queue_size(num_thread)
 {
@@ -37,17 +38,10 @@ ThreadPool::ThreadPool(unsigned int num_thread)
 	sem_init(&_available_work, 0, 0);
 	sem_init(&_available_thread, 0, _queue_size);
 	pthread_mutex_unlock(&_mutex_sync);
-}
 
-void ThreadPool::initialize_thread()
-{
-	for (unsigned int i = 0; i < _num_thread; ++i)
-	{
-		pthread_t tempThread;
-		pthread_create(&tempThread, NULL, &ThreadPool::thread_execute, (void *) this );
-		//threadIdVec[i] = tempThread;
+	for (std::vector<pthread_t>::iterator i = _thread_pool.begin(); i != _thread_pool.end(); ++i) {
+		pthread_create(&*i, NULL, &ThreadPool::thread_execute, this);
 	}
-
 }
 
 ThreadPool::~ThreadPool()

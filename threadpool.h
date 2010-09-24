@@ -51,8 +51,6 @@ public:
 	bool assign_work(WorkerThread *worker);
 	bool fetch_work(WorkerThread **worker);
 
-	void initialize_thread();
-
 	static void *thread_execute(void *param);
 
 	static pthread_mutex_t _mutex_sync;
@@ -60,6 +58,7 @@ public:
 
 
 private:
+	std::vector<pthread_t> _thread_pool;
 	unsigned int _num_thread;
 
 	sem_t _available_work;
