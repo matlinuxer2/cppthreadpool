@@ -62,7 +62,6 @@ public:
 private:
 	unsigned int _num_thread;
 
-	pthread_cond_t  condCrit;
 	sem_t availableWork;
 	sem_t availableThreads;
 
