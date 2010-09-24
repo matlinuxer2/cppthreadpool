@@ -39,7 +39,7 @@ ThreadPool::ThreadPool(unsigned int num_thread)
 	pthread_mutex_unlock(&mutexSync);
 }
 
-void ThreadPool::initializeThreads()
+void ThreadPool::initialize_thread()
 {
 	for (unsigned int i = 0; i < _num_thread; ++i)
 	{

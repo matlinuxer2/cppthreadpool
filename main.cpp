@@ -55,9 +55,9 @@ int main(int argc, char **argv)
 	//ThreadPool(N);
 	//Create a Threadpool with N number of threads
 	ThreadPool* myPool = new ThreadPool(2);
-	myPool->initializeThreads();
+	myPool->initialize_thread();
 
-	//We will count time elapsed after initializeThreads()
+	//We will count time elapsed after initialize_thread()
 	time_t t1=time(NULL);
 
 	//Lets start bullying ThreadPool with tonnes of work !!!

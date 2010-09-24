@@ -51,7 +51,7 @@ public:
 	bool assign_work(WorkerThread *worker);
 	bool fetch_work(WorkerThread **worker);
 
-	void initializeThreads();
+	void initialize_thread();
 
 	static void *threadExecute(void *param);
 
