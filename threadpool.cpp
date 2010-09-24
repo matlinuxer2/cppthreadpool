@@ -71,9 +71,10 @@ ThreadPool::ThreadPool(unsigned int num_thread)
 	_top_index = 0;
 	_bottom_index = 0;
 	_incomplete_work = 0;
-	sem_init(&_available_work, 0, 0);
+	init_sem(&_available_work);
 	sem_init(&_available_thread, 0, _queue_size);
 
+	init_mutex(&_work_mutex);
 	init_mutex(&_mutex_sync);
 	init_mutex(&_mutex_work_completion);
 
@@ -105,60 +106,29 @@ void ThreadPool::destroy_pool(int maxPollSecs = 2)
 }
 
 
-bool ThreadPool::assign_work(WorkerThread *workerThread)
+void ThreadPool::assign_work(WorkerThread *workerThread)
 {
-	{
-		ScopedMutex mutex(&_mutex_work_completion);
-		_incomplete_work++;
-	}
-
-	sem_wait(&_available_thread);
-
-	{
-		ScopedMutex mutex(&_mutex_sync);
-		_worker_queue[_top_index] = workerThread;
-		if(_queue_size !=1 )
-			_top_index = (_top_index+1) % (_queue_size-1);
-		sem_post(&_available_work);
-	}
-	return true;
+	ScopedMutex mutex(&_work_mutex);
+	_work.push_back(workerThread);
+	post_sem(&_available_work);
 }
 
-bool ThreadPool::fetch_work(WorkerThread **workerArg)
+WorkerThread * ThreadPool::fetch_work()
 {
-	sem_wait(&_available_work);
-
-	{
-		ScopedMutex mutex(&_mutex_sync);
-		WorkerThread * workerThread = _worker_queue[_bottom_index];
-		_worker_queue[_bottom_index] = NULL;
-		*workerArg = workerThread;
-		if(_queue_size !=1 )
-			_bottom_index = (_bottom_index+1) % (_queue_size-1);
-		sem_post(&_available_thread);
-	}
-	return true;
+	wait_sem(&_available_work);
+	ScopedMutex mutex(&_work_mutex);
+	WorkerThread* work = _work.front();
+	_work.pop_front();
+	return work;
 }
 
-void *ThreadPool::thread_execute(void *param)
+void * ThreadPool::thread_execute(void *param)
 {
-	WorkerThread *worker = NULL;
+	ThreadPool *pool = static_cast<ThreadPool*>(param);
 
-	while(((ThreadPool *)param)->fetch_work(&worker))
-	{
-		if(worker)
-		{
-			worker->executeThis();
-			//cout << "worker[" << worker->id << "]\tdelete address: [" << worker << "]" << endl;
-			delete worker;
-			worker = NULL;
-		}
-
-		{
-			ThreadPool * pool = static_cast<ThreadPool*>(param);
-			ScopedMutex mutex(&pool->_mutex_work_completion);
-			--pool->_incomplete_work;
-		}
+	for (;;) {
+		WorkerThread* worker = pool->fetch_work();
+		worker->executeThis();
 	}
 	return 0;
 }
@@ -182,6 +152,55 @@ void ThreadPool::init_mutex(pthread_mutex_t* const mutex)
 	default:
 		throw Error("UNKNOWN returned by pthread_mutex_init()");
 	};
+}
+
+void ThreadPool::init_sem(sem_t* const sem)
+{
+	int ret = sem_init(sem, 0, 0);
+	if (0 != ret) {
+		switch (errno) {
+		case EINVAL:
+			throw Error("EINVAL returned by sem_init()");
+		case ENOSYS:
+			throw Error("ENOSYS returned by sem_init()");
+		default:
+			throw Error("UNKNOWN returned by sem_init()");
+		}
+	}
+}
+
+void ThreadPool::post_sem(sem_t* const sem)
+{
+	int ret = sem_post(sem);
+	if (0 != ret) {
+		switch (errno) {
+		case EINVAL:
+			throw Error("EINVAL returned by sem_post()");
+		case EOVERFLOW:
+			throw Error("EOVERFLOW returned by sem_post()");
+		default:
+			throw Error("UNKNOWN returned by sem_post()");
+		}
+	}
+}
+
+void ThreadPool::wait_sem(sem_t* const sem)
+{
+	for (;;) {
+		int ret = sem_wait(sem);
+		if (0 == ret) {
+			return;
+		}
+
+		switch (errno) {
+		case EINTR:
+			break;
+		case EINVAL:
+			throw Error("EINVAL returned by sem_wait()");
+		default:
+			throw Error("UNKNOWN returned by sem_wait()");
+		}
+	}
 }
 
 Error::Error(const char * what)

@@ -22,6 +22,7 @@
 #include <semaphore.h>
 #include <iostream>
 #include <vector>
+#include <list>
 
 class Error: public std::exception {
 public:
@@ -59,8 +60,8 @@ public:
 
 	void destroy_pool(int maxPollSecs);
 
-	bool assign_work(WorkerThread *worker);
-	bool fetch_work(WorkerThread **worker);
+	void assign_work(WorkerThread *worker);
+	WorkerThread* fetch_work();
 
 	static void *thread_execute(void *param);
 
@@ -68,13 +69,19 @@ public:
 
 private:
 	static void init_mutex(pthread_mutex_t* mutex);
+	static void init_sem(sem_t* sem);
+	static void post_sem(sem_t* sem);
+	static void wait_sem(sem_t* sem);
 	std::vector<pthread_t> _thread_pool;
+	std::list<WorkerThread *> _work;
+	pthread_mutex_t _work_mutex;
+	sem_t _available_work;
+
 	unsigned int _num_thread;
 
 	pthread_mutex_t _mutex_sync;
 	pthread_mutex_t _mutex_work_completion;
 
-	sem_t _available_work;
 	sem_t _available_thread;
 
 	std::vector<WorkerThread *> _worker_queue;
