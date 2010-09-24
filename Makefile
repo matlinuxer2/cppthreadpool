@@ -2,6 +2,7 @@ CXX=g++
 LDFLAGS=-pthread
 SRC=$(wildcard *.cpp)
 OBJ=$(SRC:.cpp=.o)
+DEP=$(SRC:.cpp=.d)
 BIN=threadpool
 
 .PHONY: all clean
@@ -12,5 +13,10 @@ all: $(OBJ)
 clean:
 	$(RM) $(OBJ) $(BIN)
 
-.cpp.o:
+%.o: %.cpp %.d
 	$(CXX) $< -c $(CXXFLAGS) -o $@
+
+%.d: %.cpp
+	$(CXX) -MM $< -o $@
+
+-include $(DEP)
