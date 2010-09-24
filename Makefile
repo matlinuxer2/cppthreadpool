@@ -1,4 +1,5 @@
 CXX=g++
+CXXFLAGS=-Wall -g
 LDFLAGS=-pthread
 SRC=$(wildcard *.cpp)
 OBJ=$(SRC:.cpp=.o)
