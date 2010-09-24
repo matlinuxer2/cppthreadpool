@@ -17,12 +17,12 @@
 */
 
 #include <exception>
+#include <iostream>
+#include <list>
+#include <vector>
 
 #include <pthread.h>
 #include <semaphore.h>
-#include <iostream>
-#include <vector>
-#include <list>
 
 class Error: public std::exception {
 public:
