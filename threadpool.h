@@ -15,6 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#ifndef THREAD_POOL_H
+#define THREAD_POOL_H
 
 #include <exception>
 #include <iostream>
@@ -77,6 +79,4 @@ private:
 	sem_t _available_work;
 };
 
-
-
-
+#endif
