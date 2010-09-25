@@ -63,8 +63,6 @@ public:
 	void assign_work(WorkerThread *worker);
 
 private:
-	static const struct timespec DESTROY_TIMEOUT;
-
 	static void *thread_execute(void *param);
 	static void init_mutex(pthread_mutex_t* mutex);
 	static void init_sem(sem_t* sem);

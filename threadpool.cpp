@@ -63,8 +63,6 @@ private:
 	pthread_mutex_t * const _mutex;
 };
 
-const struct timespec ThreadPool::DESTROY_TIMEOUT = { 10, 0 };
-
 ThreadPool::ThreadPool(unsigned int num_thread)
 :_thread_pool(num_thread)
 ,_work()
@@ -98,20 +96,7 @@ ThreadPool::~ThreadPool()
 	/*
 	 * All failures are ignored in destructor.
 	 */
-
-	int ret = 0;
-	// make sure all thread finish its jobs.
-	for (unsigned int i = 0; i < _thread_pool.size(); ++i) {
-		do {
-			ret = sem_timedwait(&_available_work, &DESTROY_TIMEOUT);
-		} while (0 != ret && EINTR == errno);
-
-		if (0 != ret) {
-			std::cerr << "Timeout, stop ThreadPool" << std::endl;
-			break;
-		}
-	}
-	ret = sem_destroy(&_available_work);
+	int ret = sem_destroy(&_available_work);
 	if (0 != ret) {
 		std::cerr << errno << " returned by sem_destory(). Ignore" << std::endl;
 	}
