@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include "threadpool.h"
+#include "threadpool-impl.h"
 
 using namespace std;
 
