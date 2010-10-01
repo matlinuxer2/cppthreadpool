@@ -3,3 +3,6 @@ all: threadpool.o
 
 threadpool.o:
 	g++ -c threadpool.cpp 
+
+clean:
+	rm -vf *.exe *.o
